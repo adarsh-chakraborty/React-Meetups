@@ -87,4 +87,12 @@ export async function getStaticProps() {
     revalidate: 10
   };
 }
+
+// export async function getServerSideProps() {
+//   return {
+//     props: {
+//       meetups: DUMMY_MEETUPS
+//     }
+//   };
+// }
 export default HomePage;
