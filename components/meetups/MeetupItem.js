@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 function MeetupItem(props) {
   const router = useRouter();
   const showDetailsHandler = () => {
-    router.push();
+    router.push('/new-meetups');
   };
   return (
     <li className={classes.item}>
