@@ -1,12 +1,15 @@
 import MeetupDetails from '../../components/meetups/MeetupDetail';
+import { MongoClient, ObjectId } from 'mongodb';
 
 function MeetupDetailsPage(props) {
+  const meetup = props.meetupData;
+  console.log(props);
   return (
     <MeetupDetails
-      src={props.meetupData.src}
-      address={props.meetupData.address}
-      title={props.meetupData.title}
-      details={props.meetupData.details}
+      src={meetup.image}
+      address={meetup.address}
+      title={meetup.title}
+      details={meetup.details}
     />
   );
 }
@@ -14,56 +17,43 @@ function MeetupDetailsPage(props) {
 export async function getStaticProps(context) {
   // fetch data for single meetup
   const meetupId = context.params.meetupId;
-  console.log(meetupId);
+
+  const client = await MongoClient.connect(process.env.MONGODB_URI);
+  const db = client.db();
+
+  const meetupsCollection = db.collection('meetups');
+  console.log('trying to find with meetupId: ', meetupId);
+  const meetupData = await meetupsCollection.findOne({
+    _id: ObjectId(meetupId)
+  });
+  console.log(meetupData);
+  client.close();
+
   return {
     props: {
       meetupData: {
-        src: 'https://source.unsplash.com/1600x900/?landscape',
-        title: 'A Good meetup with your dog',
-        id: 'm1',
-        address: 'Some address in nearby state',
-        details:
-          'Some details that looks bigger and has some lorem ipsum metadotor content.'
+        _id: meetupData._id.toString(),
+        title: meetupData.title,
+        address: meetupData.address,
+        image: meetupData.image,
+        description: meetupData.description
       }
     }
   };
 }
 
 export async function getStaticPaths() {
+  const client = await MongoClient.connect(process.env.MONGODB_URI);
+  const db = client.db();
+
+  const meetupsCollection = db.collection('meetups');
+  const meetups = await meetupsCollection.find({}, { _id: 1 }).toArray();
+  client.close();
   return {
     fallback: false,
-    paths: [
-      {
-        params: { meetupId: 'm1' }
-      },
-      {
-        params: { meetupId: 'm2' }
-      },
-      {
-        params: { meetupId: 'm3' }
-      },
-      {
-        params: { meetupId: 'm4' }
-      },
-      {
-        params: { meetupId: 'm5' }
-      },
-      {
-        params: { meetupId: 'm6' }
-      },
-      {
-        params: { meetupId: 'm7' }
-      },
-      {
-        params: { meetupId: 'm8' }
-      },
-      {
-        params: { meetupId: 'm9' }
-      },
-      {
-        params: { meetupId: 'm10' }
-      }
-    ]
+    paths: meetups.map((meetup) => ({
+      params: { meetupId: meetup._id.toString() }
+    }))
   };
 }
 export default MeetupDetailsPage;
